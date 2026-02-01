@@ -1,38 +1,56 @@
 "use client";
 
-import {useEffect, useRef, CSSProperties} from "react";
+import { useEffect } from "react";
 
-export default function Camera() {
-    const videoRef = useRef<HTMLVideoElement | null>(null);
+type CameraProps = {
+    videoRef: React.RefObject<HTMLVideoElement | null>;
+};
 
+export default function Camera({ videoRef }: CameraProps) {
     useEffect(() => {
-        async function initCamera(){
-            if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia)
-            try{
-                const stream = await navigator.mediaDevices.getUserMedia({video: true});
-                if(videoRef.current){
-                    videoRef.current.srcObject = stream;
-                }
+        let stream: MediaStream | null = null;
+
+        async function startCamera() {
+            if (!navigator.mediaDevices?.getUserMedia) {
+                console.error("No camera available");
+                return;
             }
-            catch(err){
-                console.error("No access to camera", err);
+
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: {ideal :"environment" }},
+                });
+
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    await videoRef.current.play();
+                }
+            } catch (err) {
+                console.error("Camera error:", err);
             }
         }
-        initCamera();
-    }, []);
-    
-    const videoStyle: CSSProperties = {
-        width: "100vw",
-        height: "100vh",
-        objectFit: "cover",
-    };
-    
+
+        startCamera();
+
+        return () => {
+            stream?.getTracks().forEach((track) => track.stop());
+        };
+    }, [videoRef]);
+
     return (
-        <video ref={videoRef}
+        <video
+            ref={videoRef}
             autoPlay
             playsInline
             muted
-            style= {videoStyle}
-      />
+            style={{
+                position: "fixed",
+                inset: 0,
+                width: "100vw",
+                height: "100vh",
+                objectFit: "cover",
+                backgroundColor: "black",
+            }}
+        />
     );
 }
