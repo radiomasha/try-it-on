@@ -1,27 +1,18 @@
 "use client";
 
+import { dresses } from "../config/dresses";
+
 type Props = {
     selectedModel: string | null;
-    setSelectedModel: (model: string | null) => void;
+    setSelectedModelAction: (model: string | null) => void;
 };
 
-const dresses = [
-    { img: "/dresses/dress1.png", model: "dress1" },
-    { img: "/dresses/dress2.png", model: "dress2" },
-    { img: "/dresses/dress3.png", model: "dress3" },
-    { img: "/dresses/dress4.png", model: "dress4" },
-    { img: "/dresses/dress5.png", model: "dress5" },
-    { img: "/dresses/dress6.png", model: "dress6" },
-    { img: "/dresses/dress7.png", model: "dress7" },
-    { img: "/dresses/dress8.png", model: "dress8" },
-];
-
-export default function DressSelection({ selectedModel, setSelectedModel }: Props) {
+export default function DressSelection({ selectedModel, setSelectedModelAction }: Props) {
     return (
         <div
             style={{
                 position: "absolute",
-                bottom: "10px",
+                bottom: "45px",
                 width: "100%",
                 height: "80px",
                 display: "flex",
@@ -35,14 +26,14 @@ export default function DressSelection({ selectedModel, setSelectedModel }: Prop
         >
             {dresses.map((dress, index) => (
                 <div
-                    key={index}
-                    onClick={() => setSelectedModel(dress.model)}
+                    key={dress.id}
+                    onClick={() => setSelectedModelAction(dress.id)}
                     onContextMenu={(e) => e.preventDefault()}
                     style={{
                         width: "75px",
                         height: "75px",
                         borderRadius: "50%",
-                        border: selectedModel === dress.model ? "3px solid #D42A3B" : "2px solid white",
+                        border: selectedModel === dress.id ? "3px solid #D42A3B" : "2px solid white",
                         backgroundColor: "white",
                         overflow: "hidden",
                         cursor: "pointer",
@@ -56,7 +47,7 @@ export default function DressSelection({ selectedModel, setSelectedModel }: Prop
                     }}
                 >
                     <img
-                        src={dress.img}
+                        src={dress.thumb}
                         alt={`Dress ${index + 1}`}
                         draggable={false}
                         onContextMenu={(e) => e.preventDefault()}

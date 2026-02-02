@@ -15,11 +15,11 @@ export default function PhotoCapture({ videoRef, isModelActive }: Props) {
 
         const video = videoRef.current;
         const threeCanvas = document.querySelector("canvas");
+        const dressImg = document.querySelector('img[alt="Dress overlay"]') as HTMLImageElement;
         const logo = document.querySelector('img[alt="logo"]') as HTMLImageElement;
 
-        if (!video || !threeCanvas) return;
+        if (!video) return;
 
-        // Use screen dimensions for vertical photo
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
 
@@ -30,37 +30,42 @@ export default function PhotoCapture({ videoRef, isModelActive }: Props) {
 
         if (!ctx) return;
 
-        // Calculate how to cover the canvas with video (like object-fit: cover)
+        // Calculate video crop (object-fit: cover)
         const videoRatio = video.videoWidth / video.videoHeight;
         const canvasRatio = screenWidth / screenHeight;
 
         let drawWidth, drawHeight, offsetX, offsetY;
 
         if (videoRatio > canvasRatio) {
-            // Video is wider - crop sides
             drawHeight = screenHeight;
             drawWidth = screenHeight * videoRatio;
             offsetX = (screenWidth - drawWidth) / 2;
             offsetY = 0;
         } else {
-            // Video is taller - crop top/bottom
             drawWidth = screenWidth;
             drawHeight = screenWidth / videoRatio;
             offsetX = 0;
             offsetY = (screenHeight - drawHeight) / 2;
         }
 
-        // Draw video frame (covering full canvas)
+        // Draw video
         ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
 
-        // Draw Three.js canvas on top (same size as screen)
-        ctx.drawImage(threeCanvas, 0, 0, screenWidth, screenHeight);
+        // Draw 3D canvas if exists
+        if (threeCanvas) {
+            ctx.drawImage(threeCanvas, 0, 0, screenWidth, screenHeight);
+        }
 
-        // Draw logo if available
-        if (logo) {
-            const logoWidth = 100;
-            const logoHeight = logo.naturalHeight * (logoWidth / logo.naturalWidth);
-            ctx.drawImage(logo, screenWidth - logoWidth, 0, logoWidth, logoHeight);
+        // Draw 2D dress overlay if exists
+        if (dressImg && dressImg.complete) {
+            const rect = dressImg.getBoundingClientRect();
+            ctx.drawImage(dressImg, rect.left, rect.top, rect.width, rect.height);
+        }
+
+        // Draw logo
+        if (logo && logo.complete) {
+            const logoRect = logo.getBoundingClientRect();
+            ctx.drawImage(logo, logoRect.left, logoRect.top, logoRect.width, logoRect.height);
         }
 
         const dataUrl = tempCanvas.toDataURL("image/png");
@@ -82,13 +87,12 @@ export default function PhotoCapture({ videoRef, isModelActive }: Props) {
 
     return (
         <>
-            {/* Capture button */}
             <button
                 onClick={capturePhoto}
                 disabled={!isModelActive}
                 style={{
                     position: "absolute",
-                    bottom: "100px",
+                    bottom: "130px",
                     left: "50%",
                     transform: "translateX(-50%)",
                     width: "70px",
@@ -113,7 +117,6 @@ export default function PhotoCapture({ videoRef, isModelActive }: Props) {
                 }} />
             </button>
 
-            {/* Photo preview modal */}
             {capturedPhoto && (
                 <div style={{
                     position: "fixed",
